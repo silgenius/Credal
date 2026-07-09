@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Home, ShieldCheck, Users, User } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Home", icon: Home },
+  { href: "/home", label: "Home", icon: Home },
   { href: "/credal", label: "Credal", icon: ShieldCheck },
   { href: "/contributions", label: "Active", icon: Users },
   { href: "/profile", label: "Profile", icon: User },
