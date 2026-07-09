@@ -7,6 +7,7 @@ export interface SignupData {
   state: string;
   bvn: string;
   nin: string;
+  pin: string;
 }
 
 export const EMPTY_SIGNUP_DATA: SignupData = {
@@ -18,4 +19,5 @@ export const EMPTY_SIGNUP_DATA: SignupData = {
   state: '',
   bvn: '',
   nin: '',
+  pin: '',
 };

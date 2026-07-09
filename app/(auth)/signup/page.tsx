@@ -10,18 +10,20 @@ import PhoneStep from '@/components/auth/PhoneStep';
 import OtpStep from '@/components/auth/OtpStep';
 import PersonalInfoStep from '@/components/auth/PersonalInfoStep';
 import IdentityStep from '@/components/auth/IdentityStep';
+import PinStep from '@/components/auth/PinStep';
 import SuccessStep from '@/components/auth/SuccessStep';
 import { EMPTY_SIGNUP_DATA, type SignupData } from '@/components/auth/types';
 
-type Screen = 'welcome' | 'phone' | 'otp' | 'personal' | 'identity' | 'success';
+type Screen = 'welcome' | 'phone' | 'otp' | 'personal' | 'identity' | 'pin' | 'success';
 
 const PROGRESS_STEP: Partial<Record<Screen, number>> = {
   phone: 1,
   otp: 2,
   personal: 3,
   identity: 4,
+  pin: 5,
 };
-const TOTAL_PROGRESS_STEPS = 4;
+const TOTAL_PROGRESS_STEPS = 5;
 
 export default function SignupPage() {
   const router = useRouter();
@@ -89,9 +91,23 @@ export default function SignupPage() {
         <StepTransition stepKey="identity" direction={direction}>
           <IdentityStep
             defaultValues={data}
-            isSubmitting={isSubmitting}
+            isSubmitting={false}
             onNext={(values) => {
               setData((prev) => ({ ...prev, ...values }));
+              goTo('pin');
+            }}
+            onSkip={() => goTo('pin')}
+            onBack={() => goTo('personal', 'back')}
+          />
+        </StepTransition>
+      )}
+
+      {screen === 'pin' && (
+        <StepTransition stepKey="pin" direction={direction}>
+          <PinStep
+            isSubmitting={isSubmitting}
+            onNext={(pin) => {
+              setData((prev) => ({ ...prev, pin }));
               setIsSubmitting(true);
               // Simulated account-creation request.
               setTimeout(() => {
@@ -99,8 +115,7 @@ export default function SignupPage() {
                 goTo('success');
               }, 900);
             }}
-            onSkip={() => goTo('success')}
-            onBack={() => goTo('personal', 'back')}
+            onBack={() => goTo('identity', 'back')}
           />
         </StepTransition>
       )}
