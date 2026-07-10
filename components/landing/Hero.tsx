@@ -46,7 +46,7 @@ export default function Hero() {
 
         <div className="relative flex justify-center">
           <Image
-            src="/images/hero_img_4.png"
+            src="/images/hero_img.png"
             alt="Credal mobile app showing available balance, trust score, and recent activity"
             width={640}
             height={860}

@@ -4,25 +4,32 @@ import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import AuthCard from '@/components/auth/AuthCard';
-import TextField from '@/components/ui/TextField';
+import PhoneField from '@/components/ui/PhoneField';
+import PinCodeInput from '@/components/profile/PinCodeInput';
 import Button from '@/components/ui/Button';
 
 interface Errors {
-  name?: string;
-  password?: string;
+  phone?: string;
+  pin?: string;
 }
+
+const PIN_LENGTH = 6;
 
 export default function LoginPage() {
   const router = useRouter();
-  const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [pin, setPin] = useState('');
   const [errors, setErrors] = useState<Errors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validate = (): boolean => {
     const nextErrors: Errors = {};
-    if (!name.trim()) nextErrors.name = 'Enter your full name';
-    if (!password.trim()) nextErrors.password = 'Enter your password';
+    if (phone.replace(/\D/g, '').length !== 10) {
+      nextErrors.phone = 'Enter a valid 10-digit phone number';
+    }
+    if (pin.length !== PIN_LENGTH) {
+      nextErrors.pin = 'Enter your 6-digit PIN';
+    }
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -41,29 +48,37 @@ export default function LoginPage() {
   return (
     <AuthCard>
       <h1 className="mb-1 text-2xl font-semibold text-ink">Welcome back</h1>
-      <p className="mb-6 text-sm text-ink-muted">Log in to continue building your financial trust.</p>
+      <p className="mb-6 text-sm text-ink-muted">
+        Log in with your phone number and PIN to continue building your financial trust.
+      </p>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
-        <TextField
-          label="Full name"
-          name="name"
-          placeholder="Amina Okafor"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          error={errors.name}
-          autoComplete="name"
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
+        <PhoneField
+          name="phone"
+          value={phone}
+          onChange={(event) => {
+            setPhone(event.target.value.replace(/\D/g, '').slice(0, 10));
+            setErrors((prev) => ({ ...prev, phone: undefined }));
+          }}
+          error={errors.phone}
           autoFocus
         />
-        <TextField
-          label="Password"
-          name="password"
-          type="password"
-          placeholder="Enter your password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          error={errors.password}
-          autoComplete="current-password"
-        />
+
+        <div>
+          <label className="mb-3 block text-center text-sm font-medium text-ink">
+            Enter your 6-digit PIN
+          </label>
+          <PinCodeInput
+            value={pin}
+            onChange={(value) => {
+              setPin(value);
+              setErrors((prev) => ({ ...prev, pin: undefined }));
+            }}
+          />
+          {errors.pin && (
+            <p className="mt-3 text-center text-xs font-medium text-red-500">{errors.pin}</p>
+          )}
+        </div>
 
         <Button type="submit" isLoading={isSubmitting} fullWidth className="mt-2">
           {isSubmitting ? 'Logging in…' : 'Log in'}
