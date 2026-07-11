@@ -21,7 +21,7 @@ import EditProfileModal from "@/components/profile/EditProfileModal";
 import ChangePinModal from "@/components/profile/ChangePinModal";
 import LogoutConfirmModal from "@/components/profile/LogoutConfirmModal";
 import { MOCK_PROFILE, type ProfileData } from "@/lib/profile";
-import ToggleSwitch from "@/components/layout/ToggleSwitch";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileData>(MOCK_PROFILE);
@@ -120,9 +120,7 @@ export default function ProfilePage() {
 
       {editOpen && (
         <EditProfileModal
-          profile={profile}
           onClose={() => setEditOpen(false)}
-          onSave={setProfile}
         />
       )}
       {pinOpen && <ChangePinModal onClose={() => setPinOpen(false)} />}

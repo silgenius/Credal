@@ -11,23 +11,26 @@ import MemberList from "./MemberList";
 import AddMemberModal from "./AddMemberModal";
 import RemoveMemberConfirm from "./RemoveMemberConfirm";
 import LeaveContributionConfirm from "./LeaveContributionConfirm";
-import {
-  MOCK_CONTRIBUTIONS,
-  formatPhoneDisplay,
-  type Member,
-} from "@/lib/contributions";
+import { type Member } from "@/lib/contributions";
 import { formatNaira } from "@/lib/creditScore";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  removeMemberFromContribution,
+  leaveContribution,
+} from "@/store/slices/contributionsSlice";
 
 export default function ContributionDetail({ id }: { id: string }) {
   const router = useRouter();
-  const source = MOCK_CONTRIBUTIONS.find((c) => c.id === id);
+  const dispatch = useAppDispatch();
+  const c = useAppSelector((s) =>
+    s.contributions.contributions.find((item) => item.id === id),
+  );
 
-  const [members, setMembers] = useState<Member[]>(source?.members ?? []);
   const [addOpen, setAddOpen] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
   const [leaveOpen, setLeaveOpen] = useState(false);
 
-  if (!source) {
+  if (!c) {
     return (
       <main className="mx-auto max-w-md px-4 pt-10 text-center">
         <p className="text-sm text-ink-muted">Contribution not found.</p>
@@ -35,30 +38,24 @@ export default function ContributionDetail({ id }: { id: string }) {
     );
   }
 
-  const c = { ...source, members };
+  // Pull out primitives here so the handlers below close over plain,
+  // always-defined values instead of `c` itself (TS won't carry the
+  // `if (!c)` narrowing into nested function declarations).
+  const contributionId = c.id;
+  const contributionName = c.name;
   const canManageMembers = c.status === "pending_start" && c.createdByIsMe;
   const canLeave = c.status === "active" && !c.createdByIsMe;
 
-  function handleAddMembers(phones: string[]) {
-    const startIndex = members.length;
-    const newMembers: Member[] = phones.map((phone, i) => ({
-      id: `new-${Date.now()}-${i}`,
-      name: formatPhoneDisplay(phone),
-      phone,
-      avatarInitials: "?",
-      turnPosition: startIndex + i + 1,
-      hasPaidCurrentCycle: false,
-    }));
-    setMembers((m) => [...m, ...newMembers]);
-  }
-
   function handleRemove(member: Member) {
-    setMembers((m) => m.filter((x) => x.id !== member.id));
+    dispatch(
+      removeMemberFromContribution({ contributionId, memberId: member.id }),
+    );
     setRemoveTarget(null);
   }
 
   function handleLeave() {
-    // In production: call the API to leave, then navigate back.
+    // In production: call the API to leave first, then dispatch on success.
+    dispatch(leaveContribution({ contributionId }));
     setLeaveOpen(false);
     router.push("/contributions");
   }
@@ -146,8 +143,8 @@ export default function ContributionDetail({ id }: { id: string }) {
 
       {addOpen && (
         <AddMemberModal
+          contributionId={contributionId}
           onClose={() => setAddOpen(false)}
-          onAdd={handleAddMembers}
         />
       )}
       {removeTarget && (
@@ -159,7 +156,7 @@ export default function ContributionDetail({ id }: { id: string }) {
       )}
       {leaveOpen && (
         <LeaveContributionConfirm
-          contributionName={c.name}
+          contributionName={contributionName}
           onClose={() => setLeaveOpen(false)}
           onConfirm={handleLeave}
         />

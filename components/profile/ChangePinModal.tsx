@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Check, ShieldAlert } from "lucide-react";
 import ModalShell from "./ModalShell";
 import PinCodeInput from "./PinCodeInput";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { updatePin } from "@/store/slices/authSlice";
 
 type Step = "current" | "new" | "confirm" | "success";
 
@@ -14,6 +16,9 @@ const STEP_COPY: Record<Exclude<Step, "success">, string> = {
 };
 
 export default function ChangePinModal({ onClose }: { onClose: () => void }) {
+  const dispatch = useAppDispatch();
+  const storedPin = useAppSelector((s) => s.auth.pin);
+
   const [step, setStep] = useState<Step>("current");
   const [currentPin, setCurrentPin] = useState("");
   const [newPin, setNewPin] = useState("");
@@ -28,14 +33,17 @@ export default function ChangePinModal({ onClose }: { onClose: () => void }) {
         setError("Enter your 6-digit PIN to continue.");
         return;
       }
-      // In production: verify currentPin against the server before proceeding.
+      if (storedPin && currentPin !== storedPin) {
+        setError("That PIN doesn't match your current PIN.");
+        return;
+      }
       setStep("new");
       return;
     }
 
     if (step === "new") {
       if (newPin.length !== 6) {
-        setError("Your new PIN must be 4 digits.");
+        setError("Your new PIN must be 6 digits.");
         return;
       }
       if (newPin === currentPin) {
@@ -52,7 +60,7 @@ export default function ChangePinModal({ onClose }: { onClose: () => void }) {
         setConfirmPin("");
         return;
       }
-      // In production: submit newPin to the server here.
+      dispatch(updatePin(newPin));
       setStep("success");
     }
   }

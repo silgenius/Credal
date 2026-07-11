@@ -2,13 +2,9 @@
 
 import { useState } from "react";
 import ModalShell from "./ModalShell";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { updateProfile } from "@/store/slices/profileSlice";
 import type { ProfileData } from "@/lib/profile";
-
-interface EditProfileModalProps {
-  profile: ProfileData;
-  onClose: () => void;
-  onSave: (updated: ProfileData) => void;
-}
 
 function Field({
   label,
@@ -34,12 +30,10 @@ function Field({
   );
 }
 
-export default function EditProfileModal({
-  profile,
-  onClose,
-  onSave,
-}: EditProfileModalProps) {
-  const [form, setForm] = useState(profile);
+export default function EditProfileModal({ onClose }: { onClose: () => void }) {
+  const dispatch = useAppDispatch();
+  const profile = useAppSelector((s) => s.profile.data);
+  const [form, setForm] = useState<ProfileData>(profile);
   const [saving, setSaving] = useState(false);
 
   function update<K extends keyof ProfileData>(key: K, value: ProfileData[K]) {
@@ -50,7 +44,7 @@ export default function EditProfileModal({
     setSaving(true);
     // In production: PATCH the profile to your API here.
     await new Promise((resolve) => setTimeout(resolve, 500));
-    onSave(form);
+    dispatch(updateProfile(form));
     setSaving(false);
     onClose();
   }

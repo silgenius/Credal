@@ -9,32 +9,32 @@ import TabBar from "@/components/contributions/TabBar";
 import ContributionCard from "@/components/contributions/ContributionCard";
 import RequestCard from "@/components/contributions/RequestCard";
 import EmptyState from "@/components/contributions/EmptyState";
-import {
-  MOCK_CONTRIBUTIONS,
-  MOCK_REQUESTS,
-  type ContributionRequest,
-} from "@/lib/contributions";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { acceptRequest, declineRequest } from "@/store/slices/contributionsSlice";
 
 type TabKey = "active" | "requests" | "history";
 
 export default function ContributionsPage() {
   const [tab, setTab] = useState<TabKey>("active");
-  const [requests, setRequests] = useState<ContributionRequest[]>(MOCK_REQUESTS);
+  const dispatch = useAppDispatch();
 
-  const active = MOCK_CONTRIBUTIONS.filter(
+  const contributions = useAppSelector((s) => s.contributions.contributions);
+  const requests = useAppSelector((s) => s.contributions.requests);
+
+  const active = contributions.filter(
     (c) => c.status === "active" || c.status === "pending_start",
   );
-  const history = MOCK_CONTRIBUTIONS.filter(
+  const history = contributions.filter(
     (c) => c.status === "completed" || c.status === "cancelled",
   );
 
   function handleAccept(id: string) {
-    // In production: call the API to accept, then refresh the active list.
-    setRequests((r) => r.filter((req) => req.id !== id));
+    // In production: call the API to accept, then let the response repopulate contributions.
+    dispatch(acceptRequest(id));
   }
 
   function handleDecline(id: string) {
-    setRequests((r) => r.filter((req) => req.id !== id));
+    dispatch(declineRequest(id));
   }
 
   return (

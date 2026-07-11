@@ -7,6 +7,8 @@ import AuthCard from '@/components/auth/AuthCard';
 import PhoneField from '@/components/ui/PhoneField';
 import PinCodeInput from '@/components/profile/PinCodeInput';
 import Button from '@/components/ui/Button';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { loginSuccess } from '@/store/slices/authSlice';
 
 interface Errors {
   phone?: string;
@@ -17,6 +19,9 @@ const PIN_LENGTH = 6;
 
 export default function LoginPage() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const storedAuth = useAppSelector((s) => s.auth);
+
   const [phone, setPhone] = useState('');
   const [pin, setPin] = useState('');
   const [errors, setErrors] = useState<Errors>({});
@@ -38,9 +43,23 @@ export default function LoginPage() {
     event.preventDefault();
     if (!validate()) return;
 
+    const digits = phone.replace(/\D/g, '');
     setIsSubmitting(true);
-    // Simulated login request.
+
+    // Simulated login request — in production this hits your auth API.
     setTimeout(() => {
+      setIsSubmitting(false);
+
+      if (storedAuth.phone && storedAuth.phone !== digits) {
+        setErrors({ phone: 'No account found for this number' });
+        return;
+      }
+      if (storedAuth.pin && storedAuth.pin !== pin) {
+        setErrors({ pin: 'Incorrect PIN' });
+        return;
+      }
+
+      dispatch(loginSuccess());
       router.push('/home');
     }, 800);
   };

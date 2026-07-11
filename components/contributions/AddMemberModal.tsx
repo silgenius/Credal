@@ -3,19 +3,27 @@
 import { useState } from "react";
 import ModalShell from "@/components/profile/ModalShell";
 import PhoneNumberField, { type PendingMember } from "./PhoneNumberField";
+import { useAppDispatch } from "@/store/hooks";
+import { addMembersToContribution } from "@/store/slices/contributionsSlice";
 
 export default function AddMemberModal({
+  contributionId,
   onClose,
-  onAdd,
 }: {
+  contributionId: string;
   onClose: () => void;
-  onAdd: (phones: string[]) => void;
 }) {
+  const dispatch = useAppDispatch();
   const [pending, setPending] = useState<PendingMember[]>([]);
 
   function handleSave() {
     if (pending.length === 0) return;
-    onAdd(pending.map((p) => p.phone));
+    dispatch(
+      addMembersToContribution({
+        contributionId,
+        phones: pending.map((p) => p.phone),
+      }),
+    );
     onClose();
   }
 

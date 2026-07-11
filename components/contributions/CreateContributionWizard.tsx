@@ -11,13 +11,17 @@ import {
   formatPhoneDisplay,
   estimatedPool,
   type Frequency,
+  type Contribution,
 } from "@/lib/contributions";
 import { formatNaira } from "@/lib/creditScore";
+import { useAppDispatch } from "@/store/hooks";
+import { addContribution } from "@/store/slices/contributionsSlice";
 
 const STEPS = ["Basics", "Schedule", "Members", "Review"] as const;
 
 export default function CreateContributionWizard() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
@@ -44,8 +48,45 @@ export default function CreateContributionWizard() {
 
   async function handleCreate() {
     setSubmitting(true);
-    // In production: POST the new contribution to your API here.
+    // In production: POST the new contribution to your API here, then use its response.
     await new Promise((resolve) => setTimeout(resolve, 700));
+
+    const newContribution: Contribution = {
+      id: `contrib-${Date.now()}`,
+      name,
+      description: description || undefined,
+      amountPerMember: Number(amount) || 0,
+      frequency,
+      startDate,
+      endDate: startDate,
+      status: "pending_start",
+      createdBy: "You",
+      createdByIsMe: true,
+      currentCycle: 0,
+      totalCycles: members.length + 1,
+      members: [
+        {
+          id: "me",
+          name: "You",
+          phone: "",
+          avatarInitials: "ME",
+          turnPosition: 1,
+          hasPaidCurrentCycle: false,
+          isCreator: true,
+          isMe: true,
+        },
+        ...members.map((m, i) => ({
+          id: `m-${Date.now()}-${i}`,
+          name: formatPhoneDisplay(m.phone),
+          phone: m.phone,
+          avatarInitials: "??",
+          turnPosition: i + 2,
+          hasPaidCurrentCycle: false,
+        })),
+      ],
+    };
+
+    dispatch(addContribution(newContribution));
     router.push("/contributions");
   }
 
